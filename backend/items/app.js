@@ -9,6 +9,8 @@ require("./db");
 // https://www.npmjs.com/package/express
 const express = require("express");
 const cors = require('cors');
+const client = require("prom-client");
+client.collectDefaultMetrics();
 const app = express();
 
 app.use(cors({
@@ -18,6 +20,7 @@ app.use(cors({
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);
+require('./metrics');
 
 app.get("/api/items", (req, res, next) => {
     res.json("Items Server UP!");
@@ -31,6 +34,17 @@ app.use("/api/items/dietary", DietaryRoutes);
 
 const OrdersRoutes = require("./routes/orders.routes");
 app.use("api/items/orders", OrdersRoutes);
+
+// Expose /metrics endpoint for Prometheus to scrape metrics
+app.get('/metrics', async (req, res) => {
+    try {
+        res.set('Content-Type', client.register.contentType);
+        const metrics = await client.register.metrics();
+        res.end(metrics);
+    } catch (ex) {
+        res.status(500).end(ex);
+    }
+});
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
