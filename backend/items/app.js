@@ -10,17 +10,19 @@ require("./db");
 const express = require("express");
 const cors = require('cors');
 const client = require("prom-client");
-client.collectDefaultMetrics();
+const { httpMetricsMiddleware } = require('./metrics.cjs');
 const app = express();
 
 app.use(cors({
     origin: '*'
 }));
-
+app.use(httpMetricsMiddleware);
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);
-require('./metrics');
+
+require('./metrics.cjs');
+client.collectDefaultMetrics();
 
 app.get("/api/items", (req, res, next) => {
     res.json("Items Server UP!");

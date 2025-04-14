@@ -42,3 +42,36 @@ setInterval(updateCouponsCount, UPDATE_INTERVAL_MS);
 
 updateCampaignsCount();
 updateCouponsCount();
+
+// Overall HTTP requests counter without labels.
+const totalHttpRequestsCounter = new client.Counter({
+  name: 'http_requests_overall_total',
+  help: 'Overall total number of HTTP requests',
+});
+
+// Counter with labels for detailed HTTP request tracking.
+const httpRequestsCounter = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests with labels',
+  labelNames: ['method', 'route', 'statusCode'],
+});
+
+// Express middleware to update both HTTP requests counters.
+function httpMetricsMiddleware(req, res, next) {
+  res.on('finish', () => {
+    const method = req.method;
+    const route = req.originalUrl || req.url;
+    const statusCode = res.statusCode.toString();
+
+    // Increment the detailed counter.
+    httpRequestsCounter.labels(method, route, statusCode).inc();
+
+    // Increment the overall counter.
+    totalHttpRequestsCounter.inc();
+  });
+  next();
+}
+
+module.exports = {
+  httpMetricsMiddleware,
+};
