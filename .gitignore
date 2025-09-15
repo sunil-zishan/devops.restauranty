@@ -1,9 +1,41 @@
-client/node_modules
-mobile/node_modules
-server/node_modules
-client/.env
-mobile/.env
-server/.env
-backend/*/.env
-backend/*/node_modules
-mobile/.expo
+# System files
+.DS_Store
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+client/build/
+mobile/build/
+server/dist/
+backend/*/dist/
+
+# Docker
+*.local
+docker-compose.override.yml
+
+# Kubernetes
+*.yaml
+*.yml
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.swp
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Misc
+.env.local
+.env.production
+.env.development
+
+# Node modules
+**/node_modules/
+
