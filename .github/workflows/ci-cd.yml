@@ -1,0 +1,89 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: docker.io
+  DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USER }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${KUBECONFIG_DATA}" | base64 --decode > $HOME/.kube/config
+
+      # ---- Namespace ----
+      - name: Ensure namespace exists
+        run: kubectl apply -f k8s/base/namespace.yaml
+
+      # ---- Build & Push Services with SHA ----
+
+      - name: Build & Push auth image
+        run: |
+          docker buildx build --platform linux/amd64 \
+            -t sunilzishan/auth:${{ github.sha }} ./backend/auth --push
+      - name: Deploy auth
+        run: |
+          kubectl apply -f k8s/services/backend/auth/auth-manifest.yaml -n sunil-restauranty-dev
+          kubectl set image deployment/auth-deployment auth=sunilzishan/auth:${{ github.sha }} -n sunil-restauranty-dev
+
+      - name: Build & Push discounts image
+        run: |
+          docker buildx build --platform linux/amd64 \
+            -t sunilzishan/discounts:${{ github.sha }} ./backend/discounts --push
+      - name: Deploy discounts
+        run: |
+          kubectl apply -f k8s/services/backend/discounts/discount-manifest.yaml -n sunil-restauranty-dev
+          kubectl set image deployment/discounts-deployment discounts=sunilzishan/discounts:${{ github.sha }} -n sunil-restauranty-dev
+
+      - name: Build & Push items image
+        run: |
+          docker buildx build --platform linux/amd64 \
+            -t sunilzishan/items:${{ github.sha }} ./backend/items --push
+      - name: Deploy items
+        run: |
+          kubectl apply -f k8s/services/backend/items/items-manifest.yaml -n sunil-restauranty-dev
+          kubectl set image deployment/items-deployment items=sunilzishan/items:${{ github.sha }} -n sunil-restauranty-dev
+
+      - name: Build & Push client image
+        run: |
+          docker buildx build \
+            --build-arg REACT_APP_SERVER_URL=http://sunilzishan.com \
+            --platform linux/amd64 \
+            -t sunilzishan/client:${{ github.sha }} ./client --push
+      - name: Deploy client
+        run: |
+          kubectl apply -f k8s/services/frontend/client/client-manifest.yaml -n sunil-restauranty-dev
+          kubectl set image deployment/client-deployment client=sunilzishan/client:${{ github.sha }} -n sunil-restauranty-dev
+
+      # ---- DB & Ingress ----
+      - name: Deploy MongoDB
+        run: kubectl apply -f k8s/services/db/mongo-manifest.yaml -n sunil-restauranty-dev
+
+      - name: Deploy Ingress
+        run: kubectl apply -f k8s/base/ingress.yaml -n sunil-restauranty-dev

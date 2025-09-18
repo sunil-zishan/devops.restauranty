@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  auth:
+    build:
+      context: ./backend/auth
+    image: sunilrestaurantyacr.azurecr.io/auth-service:v2
+    ports:
+      - "3001:3001"
+
+  discounts:
+    build:
+      context: ./backend/discounts
+    image: sunilrestaurantyacr.azurecr.io/discounts-service:v2
+    ports:
+      - "3002:3002"
+
+  items:
+    build:
+      context: ./backend/items
+    image: sunilrestaurantyacr.azurecr.io/items-service:v2
+    ports:
+      - "3003:3003"
+
+  client:
+    build:
+      context: ./client
+      args:
+        REACT_APP_API_URL: http://sunilzishan.com/api
+        REACT_APP_SERVER_AUTH_URL: http://sunilzishan.com/api/auth
+        REACT_APP_SERVER_DISCOUNTS_URL: http://sunilzishan.com/api/discounts
+        REACT_APP_SERVER_ITEMS_URL: http://sunilzishan.com/api/items
+        REACT_APP_SERVER_COUPONS_URL: http://sunilzishan.com/api/coupons
+        REACT_APP_SERVER_CAMPAIGNS_URL: http://sunilzishan.com/api/campaigns
+        REACT_APP_SERVER_CATEGORIES_URL: http://sunilzishan.com/api/categories
+    image: sunilrestaurantyacr.azurecr.io/restauranty-client:amd64
+    ports:
+      - "80:80"

@@ -18,10 +18,6 @@ backend/*/dist/
 *.local
 docker-compose.override.yml
 
-# Kubernetes
-*.yaml
-*.yml
-
 # IDE/editor configs
 .vscode/
 .idea/
@@ -38,4 +34,3 @@ coverage/
 
 # Node modules
 **/node_modules/
-
