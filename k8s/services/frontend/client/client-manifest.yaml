@@ -28,7 +28,7 @@ spec:
               memory: "512Mi"
           env:
             - name: REACT_APP_SERVER_URL
-              value: http://sunilzishan.com
+              value: https://sunilzishan.com
 ---
 apiVersion: v1
 kind: Service
