@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: items-deployment
+  labels:
+    app: items
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: items
+  template:
+    metadata:
+      labels:
+        app: items
+    spec:
+      containers:
+        - name: items
+          image: sunilzishan/items:v1.0.5
+          ports:
+            - containerPort: 3003
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3003"
+            - name: SECRET
+              value: "MySecret1!"
+            - name: MONGODB_URI
+              value: "mongodb://mongo-service:27017/resturanty"
+            - name: CLOUD_NAME
+              value: "dktqdgukn"
+            - name: CLOUD_API_KEY
+              value: "316342123792323"
+            - name: CLOUD_API_SECRET
+              value: "RED68fM7MBmZwC4Vz4T6rWB97Vg"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: items-service
+  labels:
+    app: items
+spec:
+  type: ClusterIP
+  selector:
+    app: items
+  ports:
+    - port: 3003
+      targetPort: 3003
+      protocol: TCP
