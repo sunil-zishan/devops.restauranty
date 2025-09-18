@@ -51,7 +51,6 @@ jobs:
         run: kubectl apply -f k8s/base/namespace.yaml
 
       # ---- Build & Push Services with SHA ----
-
       - name: Build & Push auth image
         run: |
           docker buildx build --builder mybuilder --platform linux/amd64 \
