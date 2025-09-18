@@ -85,7 +85,7 @@ jobs:
           npm ci
           CI=false npm run build
           docker buildx build --builder mybuilder \
-            --build-arg REACT_APP_SERVER_URL=http://sunilzishan.com \
+            --build-arg REACT_APP_SERVER_URL=https://sunilzishan.com \
             --platform linux/amd64 \
             -t sunilzishan/client:${{ github.sha }} . --push
       - name: Deploy client
